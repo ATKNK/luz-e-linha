@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 
 type Cat = "Cima" | "Baixo" | "Calçado";
 type Item = { id: string; nome: string; categoria: Cat; vibe: string; basico: boolean; urlImagem: string };
-type Fav = { id: string; cima?: Item; baixo?: Item; calcado?: Item };
+type Fav = { id: string; cima?: Item | undefined; baixo?: Item | undefined; calcado?: Item | undefined };
 
 const CATS: Cat[] = ["Cima", "Baixo", "Calçado"];
 const SEED: Item[] = [
