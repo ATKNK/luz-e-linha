@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Heart, Plus, Shirt, Sparkles, LayoutGrid, Trash2, Wand2, Check } from "lucide-react";
 import logo from "@/assets/logo.png";
 import doodles from "@/assets/doodles.png";
+import moodIcons from "@/assets/mood-icons.png";
 import topImg from "@/assets/item-top.jpg";
 import bottomImg from "@/assets/item-bottom.jpg";
 import shoeImg from "@/assets/item-shoe.jpg";
@@ -64,6 +65,70 @@ function useStored<T>(key: string, initial: T) {
 
 type Tab = "look" | "armario" | "favs" | "novo";
 
+// Crops one icon out of the 4x2 mood sheet.
+function Mood({ col, row, className = "" }: { col: number; row: number; className?: string }) {
+  return (
+    <div
+      aria-hidden
+      className={`pointer-events-none bg-no-repeat ${className}`}
+      style={{ backgroundImage: `url(${moodIcons})`, backgroundSize: "400% 200%", backgroundPosition: `${(col / 3) * 100}% ${row * 100}%` }}
+    />
+  );
+}
+
+type Q = { key: "clima" | "periodo" | "humor"; title: string; opts: { v: string; label: string; icon: [number, number] }[] };
+const QUESTIONS: Q[] = [
+  { key: "clima", title: "Como está o tempo?", opts: [{ v: "frio", label: "Frio", icon: [0, 0] }, { v: "calor", label: "Calor", icon: [1, 0] }] },
+  { key: "periodo", title: "Que horas são?", opts: [{ v: "dia", label: "Dia", icon: [2, 0] }, { v: "tarde", label: "Tarde", icon: [3, 0] }, { v: "noite", label: "Noite", icon: [0, 1] }] },
+  { key: "humor", title: "Como você está?", opts: [{ v: "bem", label: "Bem", icon: [1, 1] }, { v: "mal", label: "Mal", icon: [2, 1] }] },
+];
+
+function Welcome({ onDone }: { onDone: () => void }) {
+  const [step, setStep] = useState(0);
+  const [ans, setAns] = useState<Record<string, string>>({});
+  const q = QUESTIONS[step];
+  return (
+    <Shell>
+      <div className="flex flex-1 flex-col px-5 pb-8 pt-6">
+        <img src={logo} alt="Match Closet" width={1536} height={768} className="mx-auto h-20 w-auto" />
+        <div className="mt-6 flex gap-2">
+          {QUESTIONS.map((x, i) => (
+            <button key={x.key} onClick={() => setStep(i)} className={`flex-1 rounded-full py-2 text-[11px] font-bold transition ${i === step ? "bg-foreground text-background" : ans[x.key] ? "bg-mint text-mint-foreground" : "bg-card text-muted-foreground shadow-soft"}`}>
+              {i + 1}. {["Tempo", "Período", "Humor"][i]}
+            </button>
+          ))}
+        </div>
+        <h1 className="mt-8 text-center font-display text-3xl font-extrabold">{q.title}</h1>
+        <div className={`mt-6 grid gap-3 ${q.opts.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          {q.opts.map((o) => {
+            const sel = ans[q.key] === o.v;
+            return (
+              <button
+                key={o.v}
+                onClick={() => {
+                  setAns({ ...ans, [q.key]: o.v });
+                  if (step < QUESTIONS.length - 1) setTimeout(() => setStep(step + 1), 250);
+                }}
+                className={`flex flex-col items-center gap-2 rounded-3xl bg-card p-4 shadow-soft transition active:scale-95 ${sel ? "ring-2 ring-primary" : ""}`}
+              >
+                <Mood col={o.icon[0]} row={o.icon[1]} className="h-20 w-20" />
+                <span className="font-display text-sm font-bold">{o.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          disabled={QUESTIONS.some((x) => !ans[x.key])}
+          onClick={onDone}
+          className="mt-auto flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-display font-bold text-primary-foreground shadow-glow disabled:opacity-50"
+        >
+          <Sparkles size={18} /> Montar meu look
+        </button>
+      </div>
+    </Shell>
+  );
+}
+
 function App() {
   const [items, setItems] = useStored<Item[]>("mc-items", SEED);
   const [favs, setFavs] = useStored<Fav[]>("mc-favs", []);
@@ -72,6 +137,9 @@ function App() {
   const [soft, setSoft] = useState(false);
   const [done, setDone] = useState(false);
   const [toast, setToast] = useState("");
+  const [started, setStarted] = useState(false);
+
+  if (!started) return <Welcome onDone={() => setStarted(true)} />;
 
   const stock = useMemo(() => {
     const s: Record<Cat, Item[]> = { Cima: [], Baixo: [], Calçado: [] };
