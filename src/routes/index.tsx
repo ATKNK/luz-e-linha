@@ -139,7 +139,6 @@ function App() {
   const [toast, setToast] = useState("");
   const [started, setStarted] = useState(false);
 
-  if (!started) return <Welcome onDone={() => setStarted(true)} />;
 
   const stock = useMemo(() => {
     const s: Record<Cat, Item[]> = { Cima: [], Baixo: [], Calçado: [] };
@@ -155,6 +154,7 @@ function App() {
     setTimeout(() => setToast(""), 2200);
   };
 
+  if (!started) return <Welcome onDone={() => setStarted(true)} />;
   if (done) {
     return (
       <Shell>
