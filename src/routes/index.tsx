@@ -86,7 +86,7 @@ const QUESTIONS: Q[] = [
 function Welcome({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<Record<string, string>>({});
-  const q = QUESTIONS[step];
+  const q = QUESTIONS[step]!;
   return (
     <Shell>
       <div className="flex flex-1 flex-col px-5 pb-8 pt-6">
